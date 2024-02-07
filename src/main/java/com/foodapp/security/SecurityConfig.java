@@ -19,21 +19,12 @@ import com.foodapp.service.UserService;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-	
-    private JwtRequestFilter jwtRequestFilter;
-    
     @Autowired
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
-        this.jwtRequestFilter = jwtRequestFilter;
-    }
-    
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    public void setJwtRequestFilter(JwtRequestFilter jwtRequestFilter) {
-        this.jwtRequestFilter = jwtRequestFilter;
-    }
-    
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
     @Autowired
     private UserService userService;
 
@@ -44,22 +35,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-    	if (jwtRequestFilter != null) {
+        if (jwtRequestFilter != null) {
             http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         }
         http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/login").permitAll()
-                .antMatchers("/signup").permitAll()
-                .antMatchers("/logout").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+            .authorizeRequests()
+            .antMatchers("/login").permitAll()
+            .antMatchers("/signup").permitAll()
+            .antMatchers("/user/logout").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            .and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .logout().permitAll().logoutUrl("/logout").logoutSuccessUrl("/login"); // Redirect to the login page after logout
     }
+
 
     @Bean
     @Override
