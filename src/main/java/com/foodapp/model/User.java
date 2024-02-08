@@ -22,6 +22,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String firstName;
+
+    private String lastName;
+
     @NotEmpty(message = "Email is required")
     @Email(message = "Invalid email format")
     @Column(unique = true)
@@ -36,4 +40,9 @@ public class User {
     @NotEmpty(message = "Role is required")
     private String role;
 
+    
+    private String status;
+    private Long addressId;
+    private Long restaurantId;
+    private String sellerBrandImage;
 }

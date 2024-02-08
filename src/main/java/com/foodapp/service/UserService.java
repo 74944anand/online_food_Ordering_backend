@@ -42,6 +42,8 @@ public class UserService implements UserDetailsService {
         return buildUserDetails(user);
     }
 
+    
+    
     private UserDetails buildUserDetails(User user) {
     	System.out.println(user);
     	System.out.println("Inside buildUser");

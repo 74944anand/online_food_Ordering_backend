@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.dto.LoginResponseDTO;
+import com.foodapp.dto.UserDTO;
 import com.foodapp.model.User;
+import com.foodapp.repository.UserRepository;
 import com.foodapp.security.JwtTokenUtil;
 import com.foodapp.service.UserService;
 
@@ -26,30 +28,33 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-    
+
+    @Autowired
+    private UserRepository userRepository; // Autowire UserRepository
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
         try {
             // Load user details by email
             UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
-            
+
             // Check if the provided password matches the encoded password
             if (!passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
                 throw new BadCredentialsException("Invalid password");
             }
-            
+
             // Generate JWT token
             String jwtToken = jwtTokenUtil.generateToken(userDetails);
-            
+
             // Return JWT token and user email
-            LoginResponseDTO response = new LoginResponseDTO(jwtToken, userDetails.getUsername(),userDetails.getAuthorities());
-            
+            LoginResponseDTO response = new LoginResponseDTO(jwtToken, userDetails.getUsername(), userDetails.getAuthorities());
+
             // Set authentication in SecurityContextHolder
             Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -67,15 +72,40 @@ public class AuthController {
         System.out.println("inside logout");
         return ResponseEntity.ok("Logout successful");
     }
-    
+
+
     @GetMapping("/user")
-    public ResponseEntity<?> getCurrentUser() {
+    public ResponseEntity<?> getUserDetails() {
+        // Get the authentication object from SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            System.out.println("Inside get user details");
-            return ResponseEntity.ok("Currently logged-in user: " + userDetails.getUsername());
+
+        // Check if the authentication object exists and if the user is authenticated
+        if (authentication != null && authentication.isAuthenticated()) {
+            // Get the username from the authentication object
+            String username = authentication.getName();
+
+            // Load user details by username
+            User user = userRepository.findByEmail(username);
+
+            // Create UserDTO from User
+            UserDTO userDTO = new UserDTO();
+            userDTO.setId(user.getId());
+            userDTO.setFirstName(user.getFirstName());
+            userDTO.setLastName(user.getLastName());
+            userDTO.setEmail(user.getEmail());
+            userDTO.setContactNo(user.getContactNo());
+            userDTO.setRole(user.getRole());
+            userDTO.setStatus(user.getStatus());
+            userDTO.setAddressId(user.getAddressId());
+            userDTO.setRestaurantId(user.getRestaurantId());
+            userDTO.setSellerBrandImage(user.getSellerBrandImage());
+
+            // Return the user details as a response
+            return ResponseEntity.ok(userDTO);
+        } else {
+            // If the user is not authenticated, return an unauthorized status
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
     }
+
 }
