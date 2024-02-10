@@ -44,5 +44,7 @@ public class User {
     private String status;
     private Long addressId;
     private Long restaurantId;
-    private String sellerBrandImage;
+    @Column(name = "profile_photo")
+    @Lob
+    private byte[] profilePhoto;
 }

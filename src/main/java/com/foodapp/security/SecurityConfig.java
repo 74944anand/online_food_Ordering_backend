@@ -17,6 +17,7 @@ import com.foodapp.service.UserService;
 
 @Configuration
 @EnableWebSecurity
+
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -44,6 +45,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/signup").permitAll()
             .antMatchers("/user/logout").permitAll()
             .antMatchers("/user").permitAll()
+            .antMatchers("/user/updateName").permitAll()
+            .antMatchers("/user/updatePassword").permitAll()
+            .antMatchers("/user/updateProfilePhoto").permitAll()
             .anyRequest().authenticated()
             .and()
             .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)

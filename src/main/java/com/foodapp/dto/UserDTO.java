@@ -19,6 +19,7 @@ public class UserDTO {
     private String status;
     private Long addressId;
     private Long restaurantId;
-    private String sellerBrandImage;
+    private String profilePhoto;
+	
 
 }
