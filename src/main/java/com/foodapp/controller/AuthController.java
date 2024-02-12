@@ -28,56 +28,55 @@ import com.foodapp.service.UserService;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
-	@Autowired
-	private UserRepository userRepository; // Autowire UserRepository
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody User user) {
-		try {
-			// Load user details by email
-			UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody User user) {
+        try {
+            // Load user details by email
+            UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
 
-			// Check if the provided password matches the encoded password
-			if (!passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
-				throw new BadCredentialsException("Invalid password");
-			}
+            // Check if the provided password matches the encoded password
+            if (!passwordEncoder.matches(user.getPassword(), userDetails.getPassword())) {
+                throw new BadCredentialsException("Invalid password");
+            }
 
-			// Generate JWT token
-			String jwtToken = jwtTokenUtil.generateToken(userDetails);
+            // Generate JWT token
+            String jwtToken = jwtTokenUtil.generateToken(userDetails);
 
-			// Return JWT token and user email
-			LoginResponseDTO response = new LoginResponseDTO(jwtToken, userDetails.getUsername(),
-					userDetails.getAuthorities());
+            // Return JWT token and user email
+            LoginResponseDTO response = new LoginResponseDTO(jwtToken, userDetails.getUsername(),
+                    userDetails.getAuthorities());
 
-			// Set authentication in SecurityContextHolder
-			Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
-					userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-			System.out.println("Inside Login");
-			// Return the JWT token and user email
-			return ResponseEntity.ok(response);
-		} catch (BadCredentialsException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
-		}
-	}
+            // Set authentication in SecurityContextHolder
+            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+                    userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-	@PostMapping("user/logout")
-	public ResponseEntity<?> logout() {
-		SecurityContextHolder.clearContext();
-		System.out.println("inside logout");
-		return ResponseEntity.ok("Logout successful");
-	}
+            // Return the JWT token and user email
+            return ResponseEntity.ok(response);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+        }
+    }
 
-	@GetMapping("/user")
+    @PostMapping("/user/logout")
+    public ResponseEntity<?> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logout successful");
+    }
+
+    @GetMapping("/user")
     public ResponseEntity<?> getUserDetails() {
         // Get the authentication object from SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -96,18 +95,16 @@ public class AuthController {
             userDTO.setFirstName(user.getFirstName());
             userDTO.setLastName(user.getLastName());
             userDTO.setEmail(user.getEmail());
-            userDTO.setContactNo(user.getContactNo());
+            userDTO.setContactNo(user.getContactNo()); // Assuming contactNo is phone number
             userDTO.setRole(user.getRole());
             userDTO.setStatus(user.getStatus());
-            userDTO.setAddressId(user.getAddressId());
-            userDTO.setRestaurantId(user.getRestaurantId());
-            
+            userDTO.setAddressId(user.getAddress() != null ? user.getAddress().getId() : null); // Assuming address is a separate entity with an ID
+            userDTO.setRestaurantId(user.getRestaurant() != null ? user.getRestaurant().getId() : null); // Assuming restaurant is a separate entity with an ID
+
             // Convert profile photo byte array to base64 string
             if (user.getProfilePhoto() != null) {
                 String base64EncodedProfilePhoto = Base64.getEncoder().encodeToString(user.getProfilePhoto());
-                System.out.println(user.getProfilePhoto());
                 userDTO.setProfilePhoto(base64EncodedProfilePhoto);
-                System.out.println(base64EncodedProfilePhoto);
             }
 
             // Return the user details as a response
@@ -118,4 +115,3 @@ public class AuthController {
         }
     }
 }
-

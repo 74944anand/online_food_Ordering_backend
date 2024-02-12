@@ -1,6 +1,15 @@
 package com.foodapp.model;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
@@ -42,8 +51,14 @@ public class User {
 
     
     private String status;
-    private Long addressId;
-    private Long restaurantId;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
+    
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id")
+    private RestaurantTable restaurant;
+    
     @Column(name = "profile_photo")
     @Lob
     private byte[] profilePhoto;

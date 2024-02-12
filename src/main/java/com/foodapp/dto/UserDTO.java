@@ -1,5 +1,8 @@
 package com.foodapp.dto;
 
+import com.foodapp.model.Address;
+import com.foodapp.model.RestaurantTable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
