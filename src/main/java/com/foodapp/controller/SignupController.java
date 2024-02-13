@@ -28,7 +28,7 @@ public class SignupController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User user, BindingResult bindingResult) {
         try {
-        	System.out.println(user);
+            System.out.println(user);
             // Validate user input
             if (bindingResult.hasErrors()) {
                 return ResponseEntity.badRequest().body("Invalid input data");
@@ -38,11 +38,15 @@ public class SignupController {
             if (userService.loadUserByUsername(user.getEmail()) != null) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
             }
-            
+
             // Encrypt password before saving
             String encodedPassword = passwordEncoder.encode(user.getPassword()); // Encode password
             user.setPassword(encodedPassword);
-            
+
+            // Set role
+            String role = user.getRole(); // Assuming the role is provided in the User object
+            // Perform any necessary validation on the role before setting it
+
             // Save the user
             userService.saveUser(user);
 

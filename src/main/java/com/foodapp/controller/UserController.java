@@ -1,6 +1,7 @@
 package com.foodapp.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,87 +33,102 @@ import com.foodapp.service.UserService;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+	@Autowired
+	private UserService userService;
 
-    @PutMapping("/updateName")
-    public ResponseEntity<?> updateUserName(@RequestHeader("Authorization") String token, @RequestBody UpdateNameRequest updateNameRequest) {
-        String username = jwtTokenUtil.extractUsername(token.substring(7)); // Remove "Bearer " prefix
-        User user = userRepository.findByEmail(username);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
-        }
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-        // Update first name and last name
-        user.setFirstName(updateNameRequest.getFirstName());
-        user.setLastName(updateNameRequest.getLastName());
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
 
-        userRepository.save(user);
+	@PutMapping("/updateName")
+	public ResponseEntity<?> updateUserName(@RequestHeader("Authorization") String token,
+			@RequestBody UpdateNameRequest updateNameRequest) {
+		String username = jwtTokenUtil.extractUsername(token.substring(7)); // Remove "Bearer " prefix
+		User user = userRepository.findByEmail(username);
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+		}
 
-        return ResponseEntity.ok(user);
-    }
-    
-    @PostMapping("/updatePassword")
-    public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
-        // Get authenticated user details from security context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+		// Update first name and last name
+		user.setFirstName(updateNameRequest.getFirstName());
+		user.setLastName(updateNameRequest.getLastName());
 
-        // Load user details by username
-        UserDetails userDetails = userService.loadUserByUsername(username);
+		userRepository.save(user);
 
-        // Check if the provided password matches the encoded password
-        if (!passwordEncoder.matches(updatePasswordRequest.getCurrentPassword(), userDetails.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Current password is incorrect");
-        }
+		return ResponseEntity.ok(user);
+	}
 
-        // Update the user's password
-        User user = userRepository.findByEmail(username);
-        user.setPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
-        userRepository.save(user);
+	@PostMapping("/updatePassword")
+	public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
+		// Get authenticated user details from security context
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String username = authentication.getName();
 
-        return ResponseEntity.ok("Password updated successfully");
-    }
-    
-    @PostMapping("/updateProfilePhoto")
-    public ResponseEntity<?> updateProfilePhoto(@RequestParam("file") MultipartFile file) {
-        String username = getUsername(); // Implement your method to get the username
-        User user = userRepository.findByEmail(username);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
+		// Load user details by username
+		UserDetails userDetails = userService.loadUserByUsername(username);
 
-        try {
-            if (file.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is empty");
-            }
+		// Check if the provided password matches the encoded password
+		if (!passwordEncoder.matches(updatePasswordRequest.getCurrentPassword(), userDetails.getPassword())) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Current password is incorrect");
+		}
 
-            byte[] bytes = file.getBytes();
-            userRepository.updateProfilePhoto(bytes, user.getId());
+		// Update the user's password
+		User user = userRepository.findByEmail(username);
+		user.setPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
+		userRepository.save(user);
 
-            return ResponseEntity.ok("Profile photo updated successfully");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile photo");
-        }
-    }
- // Example method to get username from JWT token or security context
-    private String getUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            return authentication.getName();
-        } else {
-            // Handle the case where the user is not authenticated
-            return null;
-        }
-    }
+		return ResponseEntity.ok("Password updated successfully");
+	}
+
+	@PostMapping("/updateProfilePhoto")
+	public ResponseEntity<?> updateProfilePhoto(@RequestParam("file") MultipartFile file) {
+		String username = getUsername(); // Implement your method to get the username
+		User user = userRepository.findByEmail(username);
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		try {
+			if (file.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is empty");
+			}
+
+			byte[] bytes = file.getBytes();
+			userRepository.updateProfilePhoto(bytes, user.getId());
+
+			return ResponseEntity.ok("Profile photo updated successfully");
+		} catch (IOException e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile photo");
+		}
+	}
+
+	@GetMapping("/usersByRole")
+	public ResponseEntity<List<User>> getUsersByRole(@RequestParam("role") String role) {
+	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    List<User> users = null;
+	    if (authentication != null && authentication.isAuthenticated()) {
+	        users = userRepository.findByRole(role);
+	        if (users.isEmpty()) {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Or return an appropriate message
+	        }
+	    }
+	    return ResponseEntity.ok(users);
+	}
+	
+	// Example method to get username from JWT token or security context
+	private String getUsername() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null && authentication.isAuthenticated()) {
+			return authentication.getName();
+		} else {
+			// Handle the case where the user is not authenticated
+			return null;
+		}
+	}
 }

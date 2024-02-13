@@ -40,22 +40,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         }
         http.csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/login").permitAll()
-            .antMatchers("/signup").permitAll()
-            .antMatchers("/user/logout").permitAll()
-            .antMatchers("/user").permitAll()
-            .antMatchers("/user/updateName").permitAll()
-            .antMatchers("/user/updatePassword").permitAll()
-            .antMatchers("/user/updateProfilePhoto").permitAll()
+        .authorizeRequests()
+            .antMatchers("/login", "/signup", "/user/logout","/user/usersByRole").permitAll()
+            .antMatchers("/user", "/user/updateName", "/user/updatePassword", "/user/updateProfilePhoto").permitAll()
+            .antMatchers("/categories").permitAll()
+            .antMatchers("/foods/add","/foods").permitAll()
             .anyRequest().authenticated()
-            .and()
-            .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .logout().permitAll().logoutUrl("/logout").logoutSuccessUrl("/login"); // Redirect to the login page after logout
-    }
+        .and()
+        .exceptionHandling()
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        .and()
+        .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .logout()
+            .permitAll().logoutUrl("/logout").logoutSuccessUrl("/login"); // Redirect to the login page after logout
+ }
 
 
     @Bean

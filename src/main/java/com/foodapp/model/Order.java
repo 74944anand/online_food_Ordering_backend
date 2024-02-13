@@ -24,7 +24,6 @@ public class Order {
     private Date deliveryDate;
     private String deliveryStatus;
     private String deliveryTime;
-    private Long orderId;
     private Date orderTime;
     private int quantity;
     private String status;

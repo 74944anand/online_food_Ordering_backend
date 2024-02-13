@@ -19,11 +19,8 @@ public class RestaurantTable {
     private Long id;
     
     private String status;
-    private int totalSeats;
-    
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "restaurant_user_id")
-    private User restaurantUser;
-
+    private User user;
     // Getters and setters
 }

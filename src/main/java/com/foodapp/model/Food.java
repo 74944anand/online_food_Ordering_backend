@@ -1,4 +1,5 @@
 package com.foodapp.model;
+
 import javax.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -19,9 +20,16 @@ public class Food {
     private Long id;
     
     private String description;
-    private String image1;
-    private String image2;
-    private String image3;
+    
+    @Lob
+    private byte[] image1;
+    
+    @Lob
+    private byte[] image2;
+    
+    @Lob
+    private byte[] image3;
+    
     private String name;
     private double price;
     private String status;
@@ -35,8 +43,8 @@ public class Food {
     private User restaurantUser;
     
     private String ingredients1;
-    private String ingredients2;
-    private String ingredients3;
 
-    // Getters and setters
+    private String ingredients2;
+
+    private String ingredients3;
 }
